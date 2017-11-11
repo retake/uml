@@ -1,0 +1,48 @@
+@startuml
+title util/filesystem
+
+boundary system
+
+
+-> collectOfValues : collectOfValues()
+activate collectOfValues
+
+    collectOfValues -> system : command(df)
+    system --> collectOfValues
+
+    collectOfValues -> parseDfLines : self.parseDfLines()
+    activate parseDfLines
+
+        loop df結果
+
+            parseDfLines -> parseDfLine: self.parseDfLine()
+            activate parseDfLine
+                hnote over parseDfLine
+                df行のフォーマットに
+                合っているかを確認し、
+                レスポンスデータ(dfstat)を
+                作成
+                endhnote
+
+            parseDfLine --> parseDfLines : dfstat
+            deactivate parseDfLine
+
+            hnote over parseDfLines
+            "/dev/mapper/docker"で
+            開始される項目を除外
+            endhnote
+
+            hnote over parseDfLines
+            filesystemsに、
+            dfstatを追加
+            endhnote
+
+        end
+
+    parseDfLines --> collectOfValues : filesystems
+    deactivate parseDfLines
+
+<-- collectOfValues : filesystems
+deactivate collectOfValues
+
+@enduml
